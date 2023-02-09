@@ -1,12 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:otto_photo_app/models/photo_data.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 import '../widgets/widgets.dart';
 
 class PhotoViewPage extends StatelessWidget {
-  final List<String> photos;
+  final List<PhotoData> photos;
   final int index;
 
   const PhotoViewPage({
@@ -43,7 +44,7 @@ class PhotoViewPage extends StatelessWidget {
         builder: (context, index) => PhotoViewGalleryPageOptions.customChild(
           child: CachedNetworkImage(
             fit: BoxFit.contain,
-            imageUrl: photos[index],
+            imageUrl: photos[index].photoUrl,
             placeholder: (context, url) => const PhotoPlaceholder(),
             errorWidget: (context, url, error) => const PhotoNotFound(),
           ),

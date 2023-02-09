@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../models/photo_data.dart';
 import '../pages/photo_view_page.dart';
 import 'photo_item.dart';
 
@@ -9,7 +10,7 @@ class PhotoGridView extends StatelessWidget {
     required this.photos,
   }) : super(key: key);
 
-  final List<String> photos;
+  final List<PhotoData> photos;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,7 @@ class PhotoGridView extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                PhotoItem(photo: photos[index], index: index),
+                PhotoItem(photo: photos[index].photoUrl, index: index),
                 const Positioned(
                     bottom: 0,
                     // left: 0,
