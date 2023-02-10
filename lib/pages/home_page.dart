@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:otto_photo_app/blocs/photos/photos_bloc.dart';
+import 'package:otto_photo_app/models/photo_data.dart';
 import 'package:otto_photo_app/repositories/photos_repository.dart';
 import 'package:otto_photo_app/services/api.dart';
 
@@ -10,6 +11,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../configs/enums.dart';
 import '../widgets/widgets.dart';
+import 'photo_view_page.dart';
+
+const snackBar = SnackBar(
+  content: Text(
+    'Favorite list are empty!',
+    textAlign: TextAlign.center,
+  ),
+);
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -30,25 +39,42 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
+  _showAllFavorites(PhotosBloc bloc) {
+    final List<PhotoData> photos = bloc.state.photos
+        .where((e) => bloc.state.favorites[e.id] ?? false)
+        .toList();
+
+    if (photos.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider<PhotosBloc>.value(
+            value: bloc,
+            child: PhotoViewPage(photos: photos, index: 0),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final PhotosBloc bloc = BlocProvider.of<PhotosBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         actions: <Widget>[
           IconButton(
-              onPressed: () async {},
+              onPressed: () => _showAllFavorites(bloc),
               icon: const Icon(Icons.favorite),
-              tooltip: "Favorites"),
-          IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.account_circle),
-              tooltip: "Sign In"),
+              tooltip: "Filter Favorites"),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // TODO: replace by bloc
+          bloc.add(PhotosRefreshed());
         },
         color: Colors.blue,
         backgroundColor: Colors.white,

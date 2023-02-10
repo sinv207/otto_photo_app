@@ -20,6 +20,10 @@ class PhotosBloc extends Bloc<PhotosEvent, PhotosState> {
       transformer: droppable(),
     );
 
+    on<PhotosRefreshed>(
+      _photosRefreshed,
+    );
+
     on<FavoriteUpdated>(
       _favoriteUpdated,
     );
@@ -48,6 +52,25 @@ class PhotosBloc extends Bloc<PhotosEvent, PhotosState> {
     }
   }
 
+  Future<FutureOr<void>> _photosRefreshed(
+      PhotosRefreshed event, Emitter<PhotosState> emit) async {
+    try {
+      emit(state.copyWith(
+        status: BlocStatus.loading,
+      ));
+
+      List<PhotoData> photos = await repository.fetchPhotos();
+
+      emit(state.copyWith(
+        status: BlocStatus.success,
+        photos: photos,
+        hasReachedMax: false,
+      ));
+    } catch (e) {
+      print(e);
+    }
+  }
+
   FutureOr<void> _favoriteUpdated(
       FavoriteUpdated event, Emitter<PhotosState> emit) {
     final updatedFavorites = Map.of(state.favorites);
@@ -59,7 +82,7 @@ class PhotosBloc extends Bloc<PhotosEvent, PhotosState> {
       updatedFavorites.update(event.photoId, (value) => event.isFavorite);
     }
 
-    print(updatedFavorites);
+    // print(updatedFavorites);
 
     emit(state.copyWith(
       status: BlocStatus.success,
