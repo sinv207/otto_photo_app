@@ -13,9 +13,13 @@ class PhotosRepository {
       final ApiResponse response =
           await apiClient.get('/api/breeds/image/random/18');
       if (response.status == ApiStatus.success) {
-        return (response.data['message'] as List)
-            .map((e) => PhotoData(id: '', photoUrl: e))
-            .toList();
+        List urlList = (response.data['message'] as List);
+        return List.generate(urlList.length, (index) {
+          return PhotoData(
+            id: '${index}_${(urlList[index] as String).split("/").last}',
+            photoUrl: urlList[index],
+          );
+        }).toList();
       } else if (response.status == ApiStatus.error) {
         // Handle for API error
         throw ApiException(response.error.errorCode);

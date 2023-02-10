@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'blocs/blocs.dart';
 import 'pages/pages.dart';
+import 'repositories/repositories.dart';
+import 'services/api.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +20,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const HomePage(title: 'Otto Photo App'),
+      home: BlocProvider(
+        create: (context) => PhotosBloc(
+          repository: PhotosRepository(
+            apiClient: ApiService(),
+          ),
+        )..add(PhotosFetched()),
+        child: const HomePage(title: 'Otto Photo App'),
+      ),
     );
   }
 }
