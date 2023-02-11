@@ -4,6 +4,8 @@ class AppException implements Exception {
   final String? _message;
   final String? _prefix;
 
+  String get message => _message ?? "";
+
   @override
   String toString() {
     return '$_prefix$_message';
@@ -13,7 +15,7 @@ class AppException implements Exception {
 class ApiException extends AppException {
   final int code;
   final String message;
-  ApiException(this.code) : message = 'Unexpect error with code $code';
+  ApiException(this.code) : message = 'Api error with code $code';
 
   ///
   /// Helper error checking

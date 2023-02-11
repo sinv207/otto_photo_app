@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:otto_photo_app/models/photo_data.dart';
 import 'package:otto_photo_app/repositories/photos_repository.dart';
-import 'package:bloc_concurrency/bloc_concurrency.dart';
 
 import '../../configs/enums.dart';
+import '../../services/api.dart';
+import '../../utils/app_exception.dart';
 
 part 'photos_event.dart';
 part 'photos_state.dart';
@@ -31,7 +33,6 @@ class PhotosBloc extends Bloc<PhotosEvent, PhotosState> {
 
   FutureOr<void> _photosFetched(
       PhotosFetched event, Emitter<PhotosState> emit) async {
-    print('_photosFetched');
     if (state.hasReachedMax) return;
     try {
       if (state.status == BlocStatus.initial) {
@@ -48,6 +49,11 @@ class PhotosBloc extends Bloc<PhotosEvent, PhotosState> {
         hasReachedMax: photos.isEmpty || state.photos.length > 100,
       ));
     } catch (e) {
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        error: e is ApiResponse ? e.error : AppException(e.toString()),
+      ));
+      // TODO: Call api to send error log to server side or integrate Sentry.io, FirebaseCrashlytic
       print(e);
     }
   }
@@ -67,26 +73,36 @@ class PhotosBloc extends Bloc<PhotosEvent, PhotosState> {
         hasReachedMax: false,
       ));
     } catch (e) {
+      emit(state.copyWith(
+        status: BlocStatus.failure,
+        error: e is ApiResponse ? e.error : AppException(e.toString()),
+      ));
+      // TODO: Call api to send error log to server side or integrate Sentry.io, FirebaseCrashlytic
       print(e);
     }
   }
 
   FutureOr<void> _favoriteUpdated(
       FavoriteUpdated event, Emitter<PhotosState> emit) {
-    final updatedFavorites = Map.of(state.favorites);
-    if (!updatedFavorites.containsKey(event.photoId)) {
-      updatedFavorites.addAll(<String, bool>{
-        event.photoId: event.isFavorite,
-      });
-    } else {
-      updatedFavorites.update(event.photoId, (value) => event.isFavorite);
+    try {
+      final updatedFavorites = Map.of(state.favorites);
+      if (!updatedFavorites.containsKey(event.photoId)) {
+        updatedFavorites.addAll(<String, bool>{
+          event.photoId: event.isFavorite,
+        });
+      } else {
+        updatedFavorites.update(event.photoId, (value) => event.isFavorite);
+      }
+
+      // print(updatedFavorites);
+
+      emit(state.copyWith(
+        status: BlocStatus.success,
+        favorites: updatedFavorites,
+      ));
+    } catch (e) {
+      // TODO: Call api to send error log to server side or integrate Sentry.io, FirebaseCrashlytic
+      print(e);
     }
-
-    // print(updatedFavorites);
-
-    emit(state.copyWith(
-      status: BlocStatus.success,
-      favorites: updatedFavorites,
-    ));
   }
 }

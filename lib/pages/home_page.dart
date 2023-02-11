@@ -1,24 +1,13 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:otto_photo_app/blocs/photos/photos_bloc.dart';
 import 'package:otto_photo_app/models/photo_data.dart';
-import 'package:otto_photo_app/repositories/photos_repository.dart';
 import 'package:otto_photo_app/services/api.dart';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../configs/enums.dart';
+import '../utils/utils.dart';
 import '../widgets/widgets.dart';
 import 'photo_view_page.dart';
-
-const snackBar = SnackBar(
-  content: Text(
-    'Favorite list are empty!',
-    textAlign: TextAlign.center,
-  ),
-);
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.title});
@@ -39,15 +28,20 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
+  /// Open photo viewer page with only favorite photos
   _showAllFavorites(PhotosBloc bloc) {
+    // Filter favorite photos
     final List<PhotoData> photos = bloc.state.photos
         .where((e) => bloc.state.favorites[e.id] ?? false)
         .toList();
 
+// Only open page when list is not empty
     if (photos.isNotEmpty) {
+      // Open photo view page
       Navigator.push(
         context,
         MaterialPageRoute(
+          // Open other page with the same bloc value (single instance of PhotosBloc)
           builder: (_) => BlocProvider<PhotosBloc>.value(
             value: bloc,
             child: PhotoViewPage(photos: photos, index: 0),
@@ -55,7 +49,9 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      // Dispay message to user on Snackbar (demo only)
+      ScaffoldMessenger.of(context)
+          .showSnackBar(getSnackBar('Favorite list are empty!'));
     }
   }
 
@@ -74,30 +70,49 @@ class _HomePageState extends State<HomePage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          // Clear page and refresh new photo list
           bloc.add(PhotosRefreshed());
         },
         color: Colors.blue,
         backgroundColor: Colors.white,
         child: BlocBuilder<PhotosBloc, PhotosState>(
           builder: (context, state) {
-            switch (state.status) {
-              case BlocStatus.loading:
-                // Waiting loading
-                return const Center(child: LoadingView());
-              case BlocStatus.success:
-                return PhotoGridView(
-                  photos: state.photos,
-                  favorites: state.favorites,
-                  hasReachedMax: state.hasReachedMax,
-                );
-              case BlocStatus.failure:
-                return const Center(child: Text('Fail to load photos!'));
-              case BlocStatus.initial:
-                // TODO: Handle this case.
-                break;
-            }
+            try {
+              switch (state.status) {
+                // When api are processing
+                case BlocStatus.loading:
+                  // Waiting loading
+                  return const Center(child: LoadingView());
 
-            // TODO: UI when onError
+// Photos are loaded successfully: display photos as gallery
+                case BlocStatus.success:
+                  return PhotoGridView(
+                    photos: state.photos,
+                    favorites: state.favorites,
+                    hasReachedMax: state.hasReachedMax,
+                  );
+
+// Fetching failure: display error UI
+                case BlocStatus.failure:
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(getSnackBar(state.error?.message));
+
+                  return const SizedBox();
+                case BlocStatus.initial:
+                  // Display UI in-case initial time
+                  break;
+              }
+            } catch (e) {
+              // display error popup on UI
+              if (e is AppException) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(getSnackBar(e.message));
+              }
+              // TODO: Call api to send error log to server side or integrate Sentry.io, FirebaseCrashlytic
+              print(e);
+            }
+            // TODO: UI for empty page
+            // For demo: defaut display blank container
             return const SizedBox();
           },
         ),

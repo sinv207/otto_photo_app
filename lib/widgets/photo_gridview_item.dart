@@ -23,10 +23,10 @@ class PhotoGridViewItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(1),
       child: InkWell(
-        // onTap: () => {},
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
+            // Open other page with the same bloc value (single instance of PhotosBloc)
             builder: (_) => BlocProvider<PhotosBloc>.value(
               value: BlocProvider.of<PhotosBloc>(context),
               child: PhotoViewPage(photos: photos, index: index),
@@ -38,22 +38,25 @@ class PhotoGridViewItem extends StatelessWidget {
           children: [
             PhotoItem(photo: photos[index].photoUrl, index: index),
             // TODO: test only
-            Text(
-              '${index + 1}',
-              style: const TextStyle(color: Colors.white),
-            ),
+            // Text(
+            //   '${index + 1}',
+            //   style: const TextStyle(color: Colors.white),
+            // ),
+
+            // Check and display favorite icon of current photo
             if (isFavorite)
               const Positioned(
-                  bottom: 0,
-                  // left: 0,
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(
-                      Icons.favorite,
-                      color: Colors.white,
-                      size: 18.0,
-                    ),
-                  ))
+                bottom: 0,
+                // left: 0,
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Icon(
+                    Icons.favorite,
+                    color: Colors.white,
+                    size: 18.0,
+                  ),
+                ),
+              )
           ],
         ),
       ),

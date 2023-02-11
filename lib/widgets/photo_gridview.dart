@@ -68,11 +68,12 @@ class _PhotoGridViewState extends State<PhotoGridView> {
 
   void _onScroll() {
     if (_isBottom) {
-      print('load more');
+      // When scroll to bottom: call fetch more photos
       BlocProvider.of<PhotosBloc>(context).add(PhotosFetched());
     }
   }
 
+  /// Check user is scrolling to bottom of screen or not
   bool get _isBottom {
     if (!_scrollController.hasClients) return false;
     final maxScroll = _scrollController.position.maxScrollExtent;

@@ -38,7 +38,7 @@ class ApiService {
       return Future.error(ApiResponse.error(error, 1));
     }
 
-    // TODO: Handle DioError here
+    // TODO: Handle Other Error here
     // ...
     return Future.error(error);
   }
@@ -67,7 +67,7 @@ class ApiService {
           }
 
           //  When own api return error object
-          if (jsonResponse['error'] != null) {
+          if (jsonResponse['error'] != null && jsonResponse['error'] is Map) {
             // continue error code
             return Future.value(
               ApiResponse.error(

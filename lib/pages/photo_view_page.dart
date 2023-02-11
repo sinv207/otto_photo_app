@@ -28,6 +28,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
   late PhotosBloc _photosBloc;
   late int currentIndex;
 
+  /// On page changed: Update current photo's index and favorite icon (on/off) base on current photo
   _onPageChanged(idx) {
     print('_onPageChanged');
     setState(() {
@@ -38,8 +39,13 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
 
   @override
   void initState() {
+    // init time: get photoBloc in current context
     _photosBloc = BlocProvider.of<PhotosBloc>(context);
+
+    // assign props to state
     currentIndex = widget.index;
+
+    // Check current photo is contained in favorites list
     isFavorite =
         _photosBloc.state.favorites[widget.photos[currentIndex].id] ?? false;
     super.initState();
@@ -49,6 +55,7 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
   Widget build(BuildContext context) {
     return BlocListener<PhotosBloc, PhotosState>(
       listener: (context, state) {
+        // Update favorite icon (on/off) after user bookmark favorite (event FavoriteUpdated)
         if (state.status == BlocStatus.success) {
           setState(() {
             isFavorite =
@@ -67,10 +74,12 @@ class _PhotoViewPageState extends State<PhotoViewPage> {
               padding: const EdgeInsets.all(8.0),
               child: IconButton(
                 onPressed: () {
+                  // User tap on icon to toggle "favorite status" on current photo
                   _photosBloc.add(FavoriteUpdated(
                       widget.photos[currentIndex].id, !isFavorite));
                 },
                 icon: Icon(
+                  // display favorite icon base on "favorite status"
                   isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: Colors.white,
                 ),
